@@ -6,7 +6,12 @@ const userSignupSchema = Joi.object({
     password: Joi.string().required(),
     subscription: Joi.string().valid(...subscriptionList),
 })
+const userSigninSchema = Joi.object({
+    email: Joi.string().pattern(emailRegexp).required(),
+    password: Joi.string().required(),
+})
 
 export default {
     userSignupSchema,
+    userSigninSchema,
 }
