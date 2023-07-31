@@ -49,6 +49,7 @@ const updateStatusContact = async (req, res, next) => {
   }
   res.status(200).json(result);
 };
+
 export default {
   getAll: ctrlWrapper(getAll),
   getById: ctrlWrapper(getById),
