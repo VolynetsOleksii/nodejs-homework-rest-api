@@ -54,8 +54,17 @@ const signin = async (req, res) => {
     },
   });
 };
+const signout = async(req, res)=> {
+    const {_id} = req.user;
+   const idCompare=  await User.findByIdAndUpdate(_id, {token: ""});
+    if (!idCompare) {
+        throw HttpError(401, "Not authorized");
+      }
+    res.status(204).json()
+}
 
 export default {
   signup: ctrlWrapper(signup),
   signin: ctrlWrapper(signin),
+  signout: ctrlWrapper(signout),
 };
