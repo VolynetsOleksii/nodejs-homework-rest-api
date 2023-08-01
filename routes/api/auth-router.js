@@ -15,4 +15,10 @@ authRouter.post("/register", validateBody(usersSchemas.userSignupSchema), authCo
 authRouter.post("/login", validateBody(usersSchemas.userSigninSchema), authController.signin)
 authRouter.post("/logout", authenticate, authController.signout);
 authRouter.get("/current", authenticate, authController.getCurrent);
+authRouter.patch(
+    "/",
+    authenticate,
+    validateBody(usersSchemas.userSubscriptionUpdateSchema),
+    authController.subscriptionUpdate
+  );
 export default authRouter;

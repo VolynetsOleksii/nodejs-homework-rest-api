@@ -70,10 +70,20 @@ const getCurrent = (req, res)=> {
         subscription,
     })
 };
+const subscriptionUpdate = async (req, res) => {
+    const { _id, email } = req.user;
+    const { subscription } = req.body;
+    await User.findByIdAndUpdate(_id, { subscription });
+    res.json({
+      email,
+      subscription,
+    });
+  };
 
 export default {
   signup: ctrlWrapper(signup),
   signin: ctrlWrapper(signin),
   signout: ctrlWrapper(signout),
   getCurrent: ctrlWrapper(getCurrent),
+  subscriptionUpdate: ctrlWrapper(subscriptionUpdate),
 };
