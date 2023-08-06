@@ -6,6 +6,11 @@ import { ctrlWrapper } from "../decorators/index.js";
 import { HttpError } from "../helpers/index.js";
 import "dotenv/config";
 import gravatar from "gravatar";
+import fs from "fs/promises";
+import path from "path";
+import Jimp from "jimp";
+
+const avatarPath = path.resolve("public", "avatars");
 
 const { JWT_SECRET } = process.env;
 
@@ -84,10 +89,26 @@ const subscriptionUpdate = async (req, res) => {
   });
 };
 
+const avatarUpdate = async (req,res) => {
+  const {_id} = req.user;
+  const {path: oldPath, filename} = req.file;
+  const newPath = path.join(avatarPath, filename);
+
+  const image = await Jimp.read(oldPath);
+  image.resize(250, 250).write(oldPath);
+
+  await fs.rename(oldPath, newPath);
+  const avatarURL = path.join("avatars", filename);
+  await User.findByIdAndUpdate(_id, {avatarURL});
+  res.json({
+    avatarURL,
+  });
+}
 export default {
   signup: ctrlWrapper(signup),
   signin: ctrlWrapper(signin),
   signout: ctrlWrapper(signout),
   getCurrent: ctrlWrapper(getCurrent),
   subscriptionUpdate: ctrlWrapper(subscriptionUpdate),
+  avatarUpdate: ctrlWrapper(avatarUpdate),
 };
