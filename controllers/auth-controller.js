@@ -1,9 +1,10 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { nanoid } from "nanoid";
 
 import User from "../models/user.js";
 import { ctrlWrapper } from "../decorators/index.js";
-import { HttpError } from "../helpers/index.js";
+import { HttpError, sendEmail, createVerifyEmail } from "../helpers/index.js";
 import "dotenv/config";
 import gravatar from "gravatar";
 import fs from "fs/promises";
@@ -22,12 +23,17 @@ const signup = async (req, res) => {
   }
 
   const hashPassword = await bcrypt.hash(password, 10);
+  const verificationToken = nanoid();
   const avatarURL = gravatar.url(email);
   const newUser = await User.create({
     ...req.body,
     password: hashPassword,
     avatarURL,
+    verificationToken,
   });
+
+  const verifyEmail = createVerifyEmail({email, verificationToken});
+  await sendEmail(verifyEmail);
 
   res.status(201).json({
     user: {
@@ -36,6 +42,20 @@ const signup = async (req, res) => {
     },
   });
 };
+
+const verify = async (req, res) => {
+  const { verificationToken } = req.params;
+  const user = await User.findOne({ verificationToken });
+  if (!user) {
+      throw HttpError(404, "User not found");
+  }
+  await User.findByIdAndUpdate(user._id, { verify: true, verificationToken: "" });
+
+  res.json({
+      message: "Verification successful"
+  })
+}
+
 const signin = async (req, res) => {
   const { email, password, subscription = "starter" } = req.body;
   const user = await User.findOne({ email });
@@ -106,6 +126,7 @@ const avatarUpdate = async (req,res) => {
 }
 export default {
   signup: ctrlWrapper(signup),
+  verify: ctrlWrapper(verify),
   signin: ctrlWrapper(signin),
   signout: ctrlWrapper(signout),
   getCurrent: ctrlWrapper(getCurrent),

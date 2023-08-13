@@ -12,6 +12,7 @@ import {authenticate, upload} from "../../middlewars/index.js";
 const authRouter = express.Router();
 
 authRouter.post("/register", validateBody(usersSchemas.userSignupSchema), authController.signup)
+authRouter.get("/verify/:verificationToken", authController.verify);
 authRouter.post("/login", validateBody(usersSchemas.userSigninSchema), authController.signin)
 authRouter.post("/logout", authenticate, authController.signout);
 authRouter.get("/current", authenticate, authController.getCurrent);
