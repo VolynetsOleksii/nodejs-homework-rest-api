@@ -45,22 +45,49 @@ const signup = async (req, res) => {
 
 const verify = async (req, res) => {
   const { verificationToken } = req.params;
+  console.log('verificationToken: ', verificationToken);
+
   const user = await User.findOne({ verificationToken });
   if (!user) {
       throw HttpError(404, "User not found");
   }
-  await User.findByIdAndUpdate(user._id, { verify: true, verificationToken: "" });
+  await User.findByIdAndUpdate(user._id, { verify: true, verificationToken: null });
 
   res.json({
       message: "Verification successful"
   })
+};
+
+const resendVerifyEmail = async(req, res)=> {
+  const {email} = req.body;
+  const user = await User.findOne({email});
+  if(!user) {
+      throw HttpError(404, "User not found");
+  }
+
+  if(user.verify) {
+      throw HttpError(400, "Verification has already been passed")
+  }
+
+  const verifyEmail = createVerifyEmail({email, verificationToken: user.verificationToken});
+
+  await sendEmail(verifyEmail);
+
+  res.json({
+      message: "Verification email sent"
+  })
 }
+
 
 const signin = async (req, res) => {
   const { email, password, subscription = "starter" } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
     throw HttpError(401, "Email or password is wrong");
+  }
+
+  if (!user.verify) {
+    throw HttpError(401, "Email not verified");
   }
 
   const passwordCompare = await bcrypt.compare(password, user.password);
@@ -127,6 +154,7 @@ const avatarUpdate = async (req,res) => {
 export default {
   signup: ctrlWrapper(signup),
   verify: ctrlWrapper(verify),
+  resendVerifyEmail: ctrlWrapper(resendVerifyEmail),
   signin: ctrlWrapper(signin),
   signout: ctrlWrapper(signout),
   getCurrent: ctrlWrapper(getCurrent),
