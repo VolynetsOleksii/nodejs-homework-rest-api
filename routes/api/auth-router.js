@@ -6,12 +6,14 @@ import {validateBody} from "../../decorators/index.js";
 
 import usersSchemas from "../../schemas/users-schemas.js";
 
-import {authenticate, upload} from "../../middlewars/index.js";
+import {authenticate, upload, isEmptyVerifyBody} from "../../middlewars/index.js";
 
 
 const authRouter = express.Router();
 
 authRouter.post("/register", validateBody(usersSchemas.userSignupSchema), authController.signup)
+authRouter.get("/verify/:verificationToken", authController.verify);
+authRouter.post("/verify", isEmptyVerifyBody, validateBody(usersSchemas.userEmailSchema), authController.resendVerifyEmail);
 authRouter.post("/login", validateBody(usersSchemas.userSigninSchema), authController.signin)
 authRouter.post("/logout", authenticate, authController.signout);
 authRouter.get("/current", authenticate, authController.getCurrent);
